@@ -1,0 +1,104 @@
+#include<stdio.h>
+#include<string.h>
+
+#define MAX_STACK_SIZE 100
+
+typedef char element;
+typedef struct {
+	element data[MAX_STACK_SIZE];
+	int top;
+}StackType;
+
+void init_stack(StackType* s) {
+	s->top = -1;
+}
+
+int is_empty(StackType* s) {
+	return (s->top == -1);
+}
+
+int is_full(StackType* s) {
+	return (s->top == (MAX_STACK_SIZE - 1));
+}
+
+void push(StackType* s, element item) {
+	if (is_full(s)) {
+		fprintf(stderr, "스택포화 에러 \n");
+		return;
+	}
+	s->data[++(s->top)] = item;
+}
+
+element pop(StackType* s) {
+	if (is_empty(s)) {
+		fprintf(stderr, "스택공백 에러\n");
+		return -1;
+	}
+	return s->data[(s->top)--];
+}
+
+element peek(StackType* s) {
+	if (is_empty(s)) {
+		fprintf(stderr, "스택공백 에러\n");
+		return -1;
+	}
+	return s->data[s->top];
+}
+
+int bracket_checker(char* exp) {
+	StackType s;
+	char ch, open_ch;
+	int i;
+
+	int len = strlen(exp);
+	init_stack(&s);
+	//문자열 길이만큼 반복
+	for (i = 0; i < len; i++) {
+		ch = exp[i];
+		switch (ch)
+		{
+		//만약 여는 괄호라면 스택에 push
+		case '(':
+		case '[':
+		case '{':
+			push(&s, ch);
+			break;
+		//닫는 괄호라면 스택에서 pop하여 비교(같지 않다면 오류)
+		case ')':
+		case ']':
+		case '}':
+			//먼저 스택이 비었는지부터 체크
+			if (is_empty(&s))
+				return 0;
+			else {
+				open_ch = pop(&s);
+				if ((open_ch == '(' && ch != ')') || (open_ch == '[' && ch != ']') || (open_ch == '{' && ch != '}'))
+					return 0;
+				break;
+			}
+		}
+	}
+	//모든 괄호를 체크했는a데 스택에 뭔가 남아있다면 오류
+	if (!is_empty(&s))
+		return 0;
+	return 1;
+}
+
+int main(void) {
+	char buf[1024] = { 0 };
+	FILE* fp = fopen("data.txt", "rt");
+	if (fp == NULL) {
+		printf("file not open\n");
+		return 0;
+	}
+	while (!feof(fp)) {
+		fscanf(fp, "%s", buf);
+		if (bracket_checker(buf))
+			printf("matching succed : ");
+		else
+			printf("matching failed : ");
+		printf("%s \n", buf);
+	}
+	fclose(fp);
+	return 0;
+}
